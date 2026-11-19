@@ -1,0 +1,156 @@
+/* Galeriewand (tiefes Grün), Papier (warmes Weiß), Messing als Akzent. Minimalistisch. */
+:root {
+  --wand: #13211b; --wand-2: #1a2c24; --wand-3: #24392f;
+  --papier: #f4efe4; --papier-2: #ebe4d4; --tinte: #2a2620; --tinte-2: #6b6255;
+  --messing: #b8935a; --messing-hell: #d6b57f; --hell: #e9e3d6; --hell-2: #a9b3ab;
+  --rot: #a4533f; --gruen: #5f8a5a;
+  --titel: 'Cormorant Garamond', Georgia, serif; --text: 'Figtree', system-ui, sans-serif;
+  --r: 6px;
+}
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; min-height: 100%; }
+body {
+  background: var(--wand); color: var(--hell); font-family: var(--text); font-size: 18px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+}
+h1, h2, h3 { font-family: var(--titel); font-weight: 500; line-height: 1.15; margin: 0 0 .4em; }
+h1 { font-size: 2.4rem; } h2 { font-size: 1.8rem; } h3 { font-size: 1.35rem; }
+a { color: var(--messing-hell); }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+
+.knopf {
+  background: transparent; border: 1px solid var(--wand-3); color: var(--hell); padding: .5em 1.1em;
+  border-radius: 999px; transition: border-color .2s, background .2s; white-space: nowrap;
+}
+.knopf:hover { border-color: var(--messing); }
+.knopf.haupt { background: var(--messing); border-color: var(--messing); color: var(--wand); }
+.knopf.klein { padding: .25em .8em; font-size: .85rem; }
+.knopf:disabled { opacity: .4; cursor: default; }
+.leise { background: none; border: 0; color: var(--hell-2); padding: .3em .5em; }
+.leise:hover { color: var(--messing-hell); }
+.gefahr:hover { color: var(--rot); border-color: var(--rot); }
+
+input, textarea, select {
+  background: var(--wand-2); border: 1px solid var(--wand-3); border-radius: var(--r); padding: .55em .7em; width: 100%;
+}
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--messing); }
+textarea { resize: vertical; min-height: 4.5em; }
+label { display: block; font-size: .8rem; color: var(--hell-2); margin: .9em 0 .25em; letter-spacing: .03em; }
+
+.seite { max-width: 1100px; margin: 0 auto; padding: max(28px, env(safe-area-inset-top)) 24px 80px; }
+.seite.schmal { max-width: 760px; }
+.kopf { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding-right: 52px; }
+.kopf h1 { margin: 0; flex: 1; }
+.zeile { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.gedimmt { color: var(--hell-2); }
+.klein { font-size: .85rem; }
+.zurueck { display: inline-block; margin-bottom: 14px; color: var(--hell-2); text-decoration: none; font-size: .9rem; }
+.zurueck:hover { color: var(--messing-hell); }
+
+/* ---------- Wand / Startbildschirm ---------- */
+.wand { position: fixed; inset: 0; display: grid; place-items: center; overflow: hidden; touch-action: pan-y; user-select: none; }
+.wand.leer { text-align: center; padding: 24px; }
+
+/* ---------- Flip-Karte ---------- */
+.karte { position: relative; perspective: 2000px; transition: width .6s ease, height .6s ease; cursor: pointer; }
+.karte-innen { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .7s cubic-bezier(.3,.7,.2,1); }
+.karte.umgedreht .karte-innen { transform: rotateY(180deg); }
+.seite-v, .seite-r { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.seite-v img { width: 100%; height: 100%; object-fit: contain; display: block; box-shadow: 0 30px 80px rgba(0,0,0,.45); }
+.seite-r { transform: rotateY(180deg); background: var(--papier); color: var(--tinte); border-radius: 3px; overflow-y: auto;
+  box-shadow: 0 30px 80px rgba(0,0,0,.45); cursor: auto; -webkit-overflow-scrolling: touch; }
+@media (prefers-reduced-motion: reduce) {
+  .karte { transition: none; }
+  .karte-innen { transition: none; transform: none !important; }
+  .seite-v, .seite-r { transition: opacity .4s; transform: none; }
+  .karte.umgedreht .seite-v, .karte:not(.umgedreht) .seite-r { opacity: 0; pointer-events: none; }
+}
+.ohne-bild { width: 100%; height: 100%; display: grid; place-content: center; text-align: center; padding: 32px; border: 1px solid var(--wand-3); }
+.ohne-bild h1 { font-size: clamp(2.2rem, 6vw, 4rem); color: var(--hell); }
+
+/* Rückseite: Papier */
+.rueck { padding: clamp(24px, 5vw, 48px); font-size: 1.05rem; }
+.rueck h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); color: var(--tinte); margin-bottom: .1em; }
+.rueck .wer { font-family: var(--titel); font-size: 1.35rem; color: var(--tinte-2); }
+.rueck .daten { font-size: .82rem; color: var(--tinte-2); margin: .6em 0 1.6em; }
+.rueck h3 { color: var(--tinte); font-size: 1.2rem; margin-top: 1.5em; border-top: 1px solid var(--papier-2); padding-top: .9em; }
+.rueck p { margin: 0 0 .7em; }
+.rueck ul { padding-left: 1.1em; margin: 0; } .rueck li { margin-bottom: .35em; }
+.rueck .src { font-size: .75rem; color: var(--tinte-2); }
+.rueck .src.pruefen, .pruefen { color: #a2702b; }
+.rueck details { margin-top: 1.2em; border-top: 1px solid var(--papier-2); padding-top: .8em; }
+.rueck summary { font-family: var(--titel); font-size: 1.2rem; cursor: pointer; list-style: none; }
+.rueck summary::before { content: '+ '; color: var(--messing); }
+.rueck details[open] summary::before { content: '– '; }
+.rueck a { color: #7d5e2c; }
+.nr { display: inline-grid; place-items: center; width: 1.4em; height: 1.4em; border-radius: 50%; background: var(--messing); color: #fff; font-size: .75rem; margin-right: .4em; }
+
+/* ---------- Navigation in der Ecke ---------- */
+.ecke { position: fixed; top: max(14px, env(safe-area-inset-top)); right: 16px; z-index: 50; transition: opacity .5s; }
+.ecke.weg { opacity: 0; pointer-events: none; }
+.ecke-knopf { width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(19,33,27,.6); color: var(--messing-hell);
+  display: grid; place-items: center; position: relative; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.ecke-zahl { position: absolute; top: -2px; right: -2px; background: var(--messing); color: var(--wand); font-size: .7rem; min-width: 18px; height: 18px; border-radius: 9px; display: grid; place-items: center; padding: 0 4px; font-weight: 600; }
+.ecke-menue { position: absolute; right: 0; top: 52px; background: var(--wand-2); border: 1px solid var(--wand-3); border-radius: 10px; padding: 8px; min-width: 210px; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+.ecke-menue a { display: flex; justify-content: space-between; padding: .55em .8em; border-radius: 6px; color: var(--hell); text-decoration: none; }
+.ecke-menue a:hover { background: var(--wand-3); }
+.ecke-menue hr { border: 0; border-top: 1px solid var(--wand-3); margin: 6px 0; }
+
+/* ---------- Sammlung ---------- */
+.raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 28px 22px; }
+.kachel { text-decoration: none; color: inherit; display: block; }
+.kachel .bildbox { aspect-ratio: 4/5; background: var(--wand-2); display: grid; place-items: center; overflow: hidden; }
+.kachel img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+.kachel:hover img { transform: scale(1.03); }
+.kachel .t { font-family: var(--titel); font-size: 1.2rem; margin-top: .5em; line-height: 1.2; }
+.kachel .a { font-size: .85rem; color: var(--hell-2); }
+.balken { height: 3px; background: var(--wand-3); margin-top: .5em; border-radius: 2px; overflow: hidden; }
+.balken > div { height: 100%; background: var(--messing); }
+.platzhalter-titel { font-family: var(--titel); font-size: 1.4rem; padding: 16px; text-align: center; color: var(--hell-2); }
+.faellig-punkt { color: var(--messing-hell); font-size: .8rem; }
+
+/* ---------- Editor ---------- */
+.block { border-top: 1px solid var(--wand-3); padding-top: 18px; margin-top: 28px; }
+.block h2 { font-size: 1.5rem; }
+.eintrag { display: grid; gap: 8px; grid-template-columns: 1fr; background: var(--wand-2); padding: 12px; border-radius: var(--r); margin-bottom: 10px; position: relative; }
+.eintrag .x { position: absolute; top: 6px; right: 6px; }
+.zwei { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+@media (max-width: 640px) { .zwei { grid-template-columns: 1fr; } }
+.ablage { border: 1px dashed var(--wand-3); border-radius: var(--r); padding: 18px; text-align: center; color: var(--hell-2); }
+.ablage.drueber { border-color: var(--messing); color: var(--messing-hell); }
+.hotspot-bild { position: relative; display: inline-block; max-width: 100%; cursor: crosshair; }
+.hotspot-bild img { max-width: 100%; max-height: 70vh; display: block; }
+.marke { position: absolute; transform: translate(-50%, -50%); width: 28px; height: 28px; border-radius: 50%; background: var(--messing); color: var(--wand);
+  display: grid; place-items: center; font-size: .8rem; font-weight: 600; border: 2px solid var(--papier); pointer-events: none; }
+.marke.puls { animation: puls 1.6s ease-in-out infinite; }
+@keyframes puls { 0%,100% { box-shadow: 0 0 0 0 rgba(214,181,127,.7); } 50% { box-shadow: 0 0 0 16px rgba(214,181,127,0); } }
+@media (prefers-reduced-motion: reduce) { .marke.puls { animation: none; } }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { background: var(--wand-3); border-radius: 999px; padding: .15em .7em; font-size: .85rem; }
+
+/* ---------- Lernen ---------- */
+.lernen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: max(24px, env(safe-area-inset-top)) 20px 30px; }
+.lern-bild { position: relative; max-width: min(900px, 100%); }
+.lern-bild img { max-width: 100%; max-height: 55vh; display: block; }
+.lern-frage { font-family: var(--titel); font-size: clamp(1.6rem, 3.4vw, 2.2rem); text-align: center; max-width: 760px; margin: 24px 0 8px; }
+.lern-antwort { background: var(--papier); color: var(--tinte); padding: 22px 28px; border-radius: 3px; max-width: 760px; width: 100%; white-space: pre-wrap; font-size: 1.1rem; }
+.bewerten { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 22px; width: min(640px, 100%); }
+.bewerten button { padding: .7em .3em; border-radius: 10px; border: 1px solid var(--wand-3); background: var(--wand-2); }
+.bewerten button:hover { border-color: var(--messing); }
+.bewerten small { display: block; color: var(--hell-2); font-size: .75rem; }
+.fortschritt { width: min(640px, 100%); margin-bottom: 18px; }
+
+/* ---------- ABC ---------- */
+.abc { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px 16px; }
+.abc-zeile { display: flex; align-items: center; gap: 8px; }
+.abc-zeile b { font-family: var(--titel); font-size: 1.4rem; width: 1.2em; color: var(--messing-hell); }
+.inventur { font-family: var(--titel); font-size: 1.6rem; color: var(--messing-hell); }
+
+/* ---------- Probe ---------- */
+.uhr { font-family: var(--titel); font-size: 3rem; color: var(--messing-hell); font-variant-numeric: tabular-nums; }
+.probe-bild { max-width: 100%; max-height: 75vh; display: block; margin: 0 auto; }
+.check { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--wand-3); cursor: pointer; }
+.check input { width: auto; margin-top: .35em; accent-color: var(--messing); transform: scale(1.3); }
+
+.hinweis { background: var(--wand-2); border-left: 3px solid var(--messing); padding: 12px 16px; border-radius: 4px; margin: 14px 0; }

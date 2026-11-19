@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#13211b"/>
+  <!-- schlichter Bilderrahmen mit aufgeschlagenem Blatt: Messing auf Dunkelgrün -->
+  <rect x="136" y="112" width="240" height="288" fill="none" stroke="#b8935a" stroke-width="14"/>
+  <rect x="166" y="142" width="180" height="228" fill="none" stroke="#b8935a" stroke-width="4" opacity=".55"/>
+  <path d="M196 300 C 230 230, 262 230, 316 196" fill="none" stroke="#b8935a" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="300" cy="190" r="16" fill="#b8935a"/>
+</svg>
