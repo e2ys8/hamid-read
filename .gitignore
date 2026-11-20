@@ -6,3 +6,9 @@ dev-dist
 !.env.example
 .DS_Store
 *.tsbuildinfo
+# Privat: nur lokal (Repo ist öffentlich)
+CLAUDE.md
+daten/*
+!daten/.gitkeep
+vorlage/*
+!vorlage/.gitkeep
