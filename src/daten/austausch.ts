@@ -38,48 +38,49 @@ export function ergaenze(alt: Werk, neu: Werk): Werk {
 }
 
 /** Bio am Werk → Künstlerprofil (vorhandenes mit gleichem Namen wird ergänzt). */
-async function migriereKuenstler(w: Werk): Promise<Werk> {
+async function migriereKuenstler(w: Werk, zeit: number): Promise<Werk> {
   if (!w.artist) return w
   const name = w.artist.trim()
   let k = w.artistId ? await db.kuenstler.get(w.artistId) : undefined
   k ??= (await db.kuenstler.where('name').equals(name).toArray()).find((x) => !x.deleted)
-  if (!k) k = { id: neueId(), name, dates: w.artistDates, paintTech: [], updatedAt: Date.now() }
+  if (!k) k = { id: neueId(), name, dates: w.artistDates, paintTech: [], updatedAt: zeit }
   let geaendert = !w.artistId
   if (w.bio && !k.bio) { k = { ...k, bio: w.bio, bioSource: w.bioSource }; geaendert = true }
-  if (geaendert) await db.kuenstler.put({ ...k, updatedAt: Date.now() })
+  if (geaendert) await db.kuenstler.put({ ...k, updatedAt: zeit })
   const { bio, bioSource, ...rest } = w
   return { ...rest, artistId: k.id }
 }
 
-async function bildUebernehmen(w: Werk): Promise<Werk> {
+async function bildUebernehmen(w: Werk, zeit: number): Promise<Werk> {
   if (typeof w.image === 'string' && w.image.startsWith('data:')) {
     const blob = await verkleinere(await dataUrlZuBlob(w.image))
     const id = neueId()
-    await db.bilder.put({ id, blob, updatedAt: Date.now() })
+    await db.bilder.put({ id, blob, updatedAt: zeit })
     return { ...w, image: 'bild:' + id }
   }
   return w
 }
 
-/** Importiert Werke (Array, {werke}, {works} oder Komplett-Backup). Gibt Zahlen zurück. */
-export async function importiere(daten: any): Promise<{ neu: number; ergaenzt: number }> {
+/** Importiert Werke (Array, {werke}, {works} oder Komplett-Backup). Gibt Zahlen zurück.
+ *  `zeit` = updatedAt der importierten Datensätze (Startdaten: 1, damit Daten vom Server immer gewinnen). */
+export async function importiere(daten: any, zeit = Date.now()): Promise<{ neu: number; ergaenzt: number }> {
   if (daten?.format === 'hamid-read-backup') return stelleBackupHer(daten)
   const liste: any[] = Array.isArray(daten) ? daten : daten?.werke ?? daten?.works ?? daten?.items ?? []
   let neu = 0, ergaenzt = 0
   for (const roh of liste) {
     if (!roh || (roh.kind && roh.kind !== 'werk')) continue
-    let w = await bildUebernehmen(normalisiere(roh))
+    let w = await bildUebernehmen(normalisiere(roh), zeit)
     const alt = await db.werke.get(w.id)
     if (alt) { w = ergaenze(alt, w); ergaenzt++ } else neu++
-    w = await migriereKuenstler(w)
-    await db.werke.put({ ...w, updatedAt: Date.now() })
+    w = await migriereKuenstler(w, zeit)
+    await db.werke.put({ ...w, updatedAt: zeit })
   }
-  await verknuepfeBeidseitig()
+  await verknuepfeBeidseitig(zeit)
   return { neu, ergaenzt }
 }
 
 /** Verwandte Werke immer beidseitig. */
-export async function verknuepfeBeidseitig() {
+export async function verknuepfeBeidseitig(zeit = Date.now()) {
   const ws = await db.werke.toArray()
   const m = new Map(ws.map((w) => [w.id, w]))
   const geaendert = new Set<string>()
@@ -87,14 +88,14 @@ export async function verknuepfeBeidseitig() {
     const z = m.get(r)
     if (z && !z.related.includes(w.id)) { z.related = [...z.related, w.id]; geaendert.add(z.id) }
   }
-  await db.werke.bulkPut([...geaendert].map((id) => ({ ...m.get(id)!, updatedAt: Date.now() })))
+  await db.werke.bulkPut([...geaendert].map((id) => ({ ...m.get(id)!, updatedAt: Math.max(zeit, m.get(id)!.updatedAt) })))
 }
 
 /** Export wie im Prototyp: ohne Lernstand und ohne Bilder. */
 export async function exportWerke() {
   const [ws, ks] = await Promise.all([db.werke.toArray(), db.kuenstler.toArray()])
   const km = new Map(ks.map((k) => [k.id, k]))
-  return ws.filter((w) => !w.deleted).map(({ updatedAt, deleted, image, ...w }) => {
+  return ws.filter((w) => !w.deleted).map(({ updatedAt, deleted, image, _srv, ...w }: any) => {
     const k = w.artistId ? km.get(w.artistId) : undefined
     return { ...w, image: image && !image.startsWith('bild:') ? image : null, bio: k?.bio, bioSource: k?.bioSource, kuenstlerTechnik: k?.paintTech }
   })
@@ -118,7 +119,7 @@ async function stelleBackupHer(b: any) {
     [db.werke, b.werke, 'id'], [db.kuenstler, b.kuenstler, 'id'], [db.abc, b.abc, 'id'],
     [db.proben, b.proben, 'id'], [db.lernstand, b.lernstand, 'key'],
   ]
-  for (const [t, liste, pk] of tabellen) for (const e of arr<any>(liste)) {
+  for (const [t, liste, pk] of tabellen) for (const { _srv, ...e } of arr<any>(liste)) {
     const alt = await t.get(e[pk])
     if (!alt) { await t.put(e); if (t === db.werke) neu++ }
     else if ((e.updatedAt ?? 0) > (alt.updatedAt ?? 0)) { await t.put(e); if (t === db.werke) ergaenzt++ }
@@ -139,8 +140,9 @@ export async function ersterStart() {
   if (await db.meta.get('initialisiert')) return
   const start = import.meta.glob('../../daten/werke-start.json', { eager: true, import: 'default' })
   const daten = Object.values(start)[0]
-  if (daten) await importiere(daten)
-  else await importiere((await import('./beispiel')).BEISPIEL)
+  // Sehr alter Zeitstempel: Daten, die schon auf dem Server liegen, haben immer Vorrang.
+  if (daten) await importiere(daten, 1)
+  else await importiere((await import('./beispiel')).BEISPIEL, 1)
   await db.meta.put({ key: 'initialisiert', value: Date.now() })
 }
 

@@ -9,6 +9,8 @@ import '@fontsource/figtree/600.css'
 import './styles.css'
 import { registerSW } from 'virtual:pwa-register'
 import App from './App'
+import { starteSync } from './sync/sync'
 
 registerSW({ immediate: true })
+starteSync()
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>)

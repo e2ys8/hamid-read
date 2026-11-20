@@ -1,12 +1,16 @@
 // Dezentes Symbol in der Ecke: erscheint erst bei Mausbewegung bzw. Antippen.
 import { useEffect, useRef, useState } from 'react'
 import { useFaellig } from './hooks'
+import { useSync } from '../sync/sync'
+import { STATUS_TEXT } from '../sync/SyncBereich'
 
 export function NavEcke({ immer = false }: { immer?: boolean }) {
   const [sichtbar, setSichtbar] = useState(immer)
   const [offen, setOffen] = useState(false)
   const t = useRef<number>(undefined)
   const faellig = useFaellig()
+  const sync = useSync()
+  const problem = sync.status === 'fehler' || sync.status === 'abgemeldet'
   useEffect(() => {
     if (immer) return
     const zeig = () => { setSichtbar(true); clearTimeout(t.current); t.current = window.setTimeout(() => setSichtbar(false), 2600) }
@@ -19,6 +23,7 @@ export function NavEcke({ immer = false }: { immer?: boolean }) {
       <button className="ecke-knopf" aria-label="Menü" onClick={() => setOffen(!offen)}>
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="5.5" height="5.5"/><rect x="11.5" y="3" width="5.5" height="5.5"/><rect x="3" y="11.5" width="5.5" height="5.5"/><rect x="11.5" y="11.5" width="5.5" height="5.5"/></svg>
         {faellig > 0 && <span className="ecke-zahl">{faellig}</span>}
+        {problem && <span className="ecke-punkt" title={STATUS_TEXT[sync.status]} />}
       </button>
       {offen && <nav className="ecke-menue">
         <a href="#/">Wand</a>
@@ -28,6 +33,7 @@ export function NavEcke({ immer = false }: { immer?: boolean }) {
         <hr />
         <a href="#/lernen">Lernen {faellig > 0 && <span className="gedimmt">{faellig} fällig</span>}</a>
         <a href="#/einstellungen">Einstellungen</a>
+        {sync.status !== 'aus' && <div className="sync-zeile"><span className={'sync-punkt ' + sync.status} />{STATUS_TEXT[sync.status]}</div>}
       </nav>}
     </div>
   )

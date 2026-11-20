@@ -21,6 +21,7 @@ class HamidDB extends Dexie {
       bilder: 'id',
       meta: 'key',
     })
+    this.version(2).stores({ bilder: 'id, updatedAt' })
   }
 }
 export const db = new HamidDB()

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ladeEinstellungen, speichereEinstellungen, STANDARD } from '../db'
 import type { Einstellungen as E } from '../types'
+import { SyncBereich } from '../sync/SyncBereich'
 
 const mb = (b?: number) => (b ? (b / 1048576).toFixed(1) + ' MB' : '–')
 
@@ -21,8 +22,12 @@ export function Einstellungen() {
       <label>Neue Fragen pro Lerneinheit</label>
       <div className="zeile">{[5, 10, 15, 25].map((n) => <button key={n} className={'knopf' + (e.neueProEinheit === n ? ' haupt' : '')} onClick={() => set({ neueProEinheit: n })}>{n}</button>)}</div>
       <div className="block">
+        <h3>Sync zwischen Mac und iPad</h3>
+        <SyncBereich />
+      </div>
+      <div className="block">
         <h3>Speicher auf diesem Gerät</h3>
-        <p className="gedimmt">Belegt: {mb(platz?.usage)}{platz?.quota ? ` von ca. ${mb(platz.quota)}` : ''}. Der Online-Speicher (Supabase, 1 GB) folgt in Phase 2.</p>
+        <p className="gedimmt">Belegt: {mb(platz?.usage)}{platz?.quota ? ` von ca. ${mb(platz.quota)}` : ''}.</p>
         <a className="knopf" href="#/kunst/import">Import / Export / Backup</a>
       </div>
       <p className="gedimmt klein" style={{ marginTop: 40 }}>„Bewegung reduzieren“ in den Systemeinstellungen ersetzt das Umdrehen durch Überblenden.</p>
