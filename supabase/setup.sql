@@ -20,7 +20,7 @@ do $$
 declare t text;
 begin
   foreach t in array array['werke','kuenstler','abc','proben','lernstand','bilder',
-                           'buecher','markierungen','buchkarten','knoten','kanten'] loop
+                           'buecher','markierungen','buchkarten','dateien','knoten','kanten'] loop
     execute format($f$
       create table if not exists public.%1$I (
         owner      uuid   not null default auth.uid() references auth.users(id) on delete cascade,
