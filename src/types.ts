@@ -32,4 +32,32 @@ export type Bild = { id: string; blob: Blob; updatedAt: number }
 export type Einstellungen = {
   startModus: 'zufall' | 'tag'
   neueProEinheit: number
+  neueProTag: number          // Obergrenze neuer Karten pro Tag (Kunst + Bücher)
+  readerDunkel: boolean
+  epubSchrift: number         // Prozent
 }
+
+// --- Bücher ---
+export type Buch = Basis & {
+  id: string; kind: 'buch'
+  title: string; author: string; year?: string; language?: string
+  format: 'pdf' | 'epub'; file: string          // "datei:<id>" (Blob in IndexedDB)
+  cover?: string | null                          // "bild:<id>"
+  notiz?: string; notizSource?: 'ki' | 'eigen'   // Bezug zu Gemälden, Künstlern, Epochen
+  progress?: number; lastPosition?: string       // EPUB-CFI oder "seite:12"
+  ohneText?: boolean                             // gescanntes PDF ohne Textebene
+  tags: string[]
+}
+export type Farbe = 'gelb' | 'gruen' | 'rot' | 'hellblau'
+export type Markierung = Basis & {
+  id: string; buchId: string; farbe: Farbe
+  text: string; position: string   // EPUB: CFI-Bereich; PDF: JSON {seite, rects:[[x,y,w,h]…]} (0..1)
+  seite?: number; kapitel?: string; eigeneNotiz?: string; createdAt: number
+}
+export type BuchKarte = Basis & {
+  id: string; buchId: string; markierungId?: string
+  typ: 'wissen' | 'reflexion' | 'zitat' | 'erklaeren'
+  q: string; a: string; luecken?: number[]     // Wortindizes für Lückentext
+  status: 'vorschlag' | 'aktiv' | 'verworfen'; herkunft: 'ki' | 'eigen'
+}
+export type Datei = { id: string; blob: Blob; name: string; updatedAt: number; deleted?: boolean }

@@ -33,7 +33,7 @@ export function ImportExport() {
       </div>
       <div className="block">
         <h3>Komplett-Backup</h3>
-        <p className="gedimmt">Alles: Werke, Künstler, Lernstand, ABC-Listen, Proben und Bilder. Später auch Bücher und Markierungen.</p>
+        <p className="gedimmt">Alles: Werke, Künstler, Lernstand, ABC-Listen, Proben, Bilder, Bücher (mit Dateien), Markierungen und Karten. Mit vielen Büchern wird die Datei groß.</p>
         <button className="knopf" onClick={async () => { setLaeuft(true); ladeHerunter(`hamid-read-backup-${heute()}.json`, await komplettBackup()); setLaeuft(false) }}>Backup herunterladen</button>
       </div>
     </div>

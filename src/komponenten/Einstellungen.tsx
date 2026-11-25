@@ -21,6 +21,9 @@ export function Einstellungen() {
       </div>
       <label>Neue Fragen pro Lerneinheit</label>
       <div className="zeile">{[5, 10, 15, 25].map((n) => <button key={n} className={'knopf' + (e.neueProEinheit === n ? ' haupt' : '')} onClick={() => set({ neueProEinheit: n })}>{n}</button>)}</div>
+      <label>Neue Karten pro Tag höchstens (Kunst + Bücher zusammen)</label>
+      <div className="zeile">{[10, 20, 30, 50].map((n) => <button key={n} className={'knopf' + (e.neueProTag === n ? ' haupt' : '')} onClick={() => set({ neueProTag: n })}>{n}</button>)}</div>
+      <p className="gedimmt klein">Damit es bei etwa 10–15 Minuten am Tag bleibt.</p>
       <div className="block">
         <h3>Sync zwischen Mac und iPad</h3>
         <SyncBereich />

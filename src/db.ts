@@ -1,6 +1,6 @@
 // Lokale Datenbank (IndexedDB über Dexie). Die App läuft komplett offline darauf.
 import Dexie, { type Table } from 'dexie'
-import type { Werk, Kuenstler, AbcListe, Probe, Lernstand, Bild, Einstellungen } from './types'
+import type { Werk, Kuenstler, AbcListe, Probe, Lernstand, Bild, Einstellungen, Buch, Markierung, BuchKarte, Datei } from './types'
 
 class HamidDB extends Dexie {
   werke!: Table<Werk, string>
@@ -10,6 +10,10 @@ class HamidDB extends Dexie {
   lernstand!: Table<Lernstand, string>
   bilder!: Table<Bild, string>
   meta!: Table<{ key: string; value: unknown }, string>
+  buecher!: Table<Buch, string>
+  markierungen!: Table<Markierung, string>
+  buchkarten!: Table<BuchKarte, string>
+  dateien!: Table<Datei, string>
   constructor() {
     super('hamid-read')
     this.version(1).stores({
@@ -22,6 +26,12 @@ class HamidDB extends Dexie {
       meta: 'key',
     })
     this.version(2).stores({ bilder: 'id, updatedAt' })
+    this.version(3).stores({
+      buecher: 'id, updatedAt',
+      markierungen: 'id, buchId, updatedAt',
+      buchkarten: 'id, buchId, markierungId, updatedAt',
+      dateien: 'id, updatedAt',
+    })
   }
 }
 export const db = new HamidDB()
@@ -31,7 +41,7 @@ export const neueId = (): string =>
     ? crypto.randomUUID()
     : Date.now().toString(36) + Math.random().toString(36).slice(2, 10)
 
-export const STANDARD: Einstellungen = { startModus: 'zufall', neueProEinheit: 10 }
+export const STANDARD: Einstellungen = { startModus: 'zufall', neueProEinheit: 10, neueProTag: 20, readerDunkel: false, epubSchrift: 110 }
 
 export async function ladeEinstellungen(): Promise<Einstellungen> {
   const m = await db.meta.get('einstellungen')
@@ -47,3 +57,4 @@ export const speichereWerk = (w: Werk) => db.werke.put({ ...w, updatedAt: Date.n
 export const speichereKuenstler = (k: Kuenstler) => db.kuenstler.put({ ...k, updatedAt: Date.now() })
 
 export const aktiveWerke = async () => (await db.werke.toArray()).filter((w) => !w.deleted)
+export const aktiveBuecher = async () => (await db.buecher.toArray()).filter((b) => !b.deleted)

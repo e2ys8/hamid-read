@@ -10,7 +10,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff2,json}'] },
+      workbox: { globPatterns: ['**/*.{js,mjs,css,html,svg,png,woff2,json}'], maximumFileSizeToCacheInBytes: 6 * 1024 * 1024 },
       devOptions: { enabled: false },
       manifest: {
         name: 'Hamid Read',

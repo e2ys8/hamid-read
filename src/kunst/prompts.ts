@@ -2,8 +2,11 @@
 import type { Werk, Kuenstler } from '../types'
 
 export type Prompt = {
-  key: string            // `${werkId}~${art}` – nie ändern, sonst geht der Lernstand verloren
-  werkId: string
+  key: string            // Kunst: `${werkId}~${art}`, Bücher: `buch~${karteId}` – nie ändern!
+  werkId?: string
+  buchId?: string
+  markierungId?: string
+  farbe?: string
   art: string
   frage: string
   antwort: string

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, aktiveWerke, ladeEinstellungen } from '../db'
-import { allePrompts, staendeMap } from '../lernen/session'
+import { kunstPrompts, staendeMap } from '../lernen/session'
 import { due } from '../lernen/scheduler'
 import { Karte } from './Karte'
 import { useWerk } from './hooks'
@@ -11,12 +11,12 @@ const mische = <T,>(a: T[]) => { const b = [...a]; for (let i = b.length - 1; i 
 const tagesZahl = () => { const d = new Date(); return d.getFullYear() * 400 + d.getMonth() * 32 + d.getDate() }
 
 async function reihenfolge(): Promise<string[]> {
-  const [ws, e, ps, st] = await Promise.all([aktiveWerke(), ladeEinstellungen(), allePrompts(), staendeMap()])
+  const [ws, e, ps, st] = await Promise.all([aktiveWerke(), ladeEinstellungen(), kunstPrompts(), staendeMap()])
   const ids = ws.map((w) => w.id).sort()
   if (!ids.length) return []
   if (e.startModus === 'tag') { const s = tagesZahl() % ids.length; return [...ids.slice(s), ...ids.slice(0, s)] }
   const now = Date.now()
-  const mitFaellig = new Set(ps.filter((p) => due(st.get(p.key), now)).map((p) => p.werkId))
+  const mitFaellig = new Set(ps.filter((p) => due(st.get(p.key), now)).map((p) => p.werkId!))
   return [...mische(ids.filter((i) => mitFaellig.has(i))), ...mische(ids.filter((i) => !mitFaellig.has(i)))]
 }
 

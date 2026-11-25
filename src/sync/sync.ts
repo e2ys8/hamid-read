@@ -17,14 +17,19 @@ const hoerer = new Set<() => void>()
 const setze = (z: Partial<Zustand>) => { zustand = { ...zustand, ...z }; hoerer.forEach((h) => h()) }
 export const useSync = () => useSyncExternalStore((h) => (hoerer.add(h), () => hoerer.delete(h)), () => zustand)
 
-type Def = { name: string; table: Table<any, string>; pk: string; datei?: 'bilder' }
+// datei: Storage-Bucket für den Blob der Zeile; endung: Dateiendung im Bucket
+type Def = { name: string; table: Table<any, string>; pk: string; datei?: 'bilder' | 'buecher'; endung?: string }
 const TABELLEN: Def[] = [
   { name: 'kuenstler', table: db.kuenstler, pk: 'id' },
   { name: 'werke', table: db.werke, pk: 'id' },
   { name: 'abc', table: db.abc, pk: 'id' },
   { name: 'proben', table: db.proben, pk: 'id' },
   { name: 'lernstand', table: db.lernstand, pk: 'key' },
-  { name: 'bilder', table: db.bilder, pk: 'id', datei: 'bilder' },
+  { name: 'bilder', table: db.bilder, pk: 'id', datei: 'bilder', endung: '.jpg' },
+  { name: 'buecher', table: db.buecher, pk: 'id' },
+  { name: 'markierungen', table: db.markierungen, pk: 'id' },
+  { name: 'buchkarten', table: db.buchkarten, pk: 'id' },
+  { name: 'dateien', table: db.dateien, pk: 'id', datei: 'buecher', endung: '' },
 ]
 
 let session: Session | null = null
@@ -47,7 +52,7 @@ async function schiebe(d: Def, uid: string) {
     for (const r of teil) {
       const { _srv, blob, ...data } = r
       if (d.datei && blob) {
-        const { error } = await supabase!.storage.from(d.datei).upload(`${uid}/${r.id}.jpg`, blob, { upsert: true, contentType: blob.type || 'image/jpeg' })
+        const { error } = await supabase!.storage.from(d.datei).upload(`${uid}/${r.id}${d.endung}`, blob, { upsert: true, contentType: blob.type || 'application/octet-stream' })
         if (error) throw error
       }
       payload.push({ owner: uid, id: r[d.pk], data, updated_at: r.updatedAt ?? 0, deleted: !!r.deleted })
@@ -71,8 +76,8 @@ async function hole(d: Def, uid: string) {
       if (lokal && (lokal.updatedAt ?? 0) >= z.updated_at) continue
       let datensatz: any = { ...z.data, updatedAt: z.updated_at, _srv: z.updated_at }
       if (d.datei) {
-        const { data: blob, error: e } = await supabase!.storage.from(d.datei).download(`${uid}/${z.id}.jpg`)
-        if (e) { console.warn('Bild fehlt auf dem Server', z.id, e); continue }
+        const { data: blob, error: e } = await supabase!.storage.from(d.datei).download(`${uid}/${z.id}${d.endung}`)
+        if (e) { console.warn('Datei fehlt auf dem Server', z.id, e); continue }
         datensatz = { ...datensatz, blob }
       }
       ziehe = true

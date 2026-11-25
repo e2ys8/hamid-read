@@ -104,11 +104,14 @@ export async function exportWerke() {
 export async function komplettBackup() {
   const bilder: Record<string, string> = {}
   for (const b of await db.bilder.toArray()) bilder[b.id] = await blobZuDataUrl(b.blob)
+  const dateien: Record<string, { name: string; daten: string; updatedAt: number }> = {}
+  for (const d of await db.dateien.toArray()) if (!d.deleted) dateien[d.id] = { name: d.name, daten: await blobZuDataUrl(d.blob), updatedAt: d.updatedAt }
   return {
-    format: 'hamid-read-backup', version: 1, erstellt: new Date().toISOString(),
+    format: 'hamid-read-backup', version: 2, erstellt: new Date().toISOString(),
     werke: await db.werke.toArray(), kuenstler: await db.kuenstler.toArray(),
     abc: await db.abc.toArray(), proben: await db.proben.toArray(), lernstand: await db.lernstand.toArray(),
-    bilder,
+    buecher: await db.buecher.toArray(), markierungen: await db.markierungen.toArray(), buchkarten: await db.buchkarten.toArray(),
+    bilder, dateien,
   }
 }
 
@@ -118,6 +121,7 @@ async function stelleBackupHer(b: any) {
   const tabellen: [any, any[], string][] = [
     [db.werke, b.werke, 'id'], [db.kuenstler, b.kuenstler, 'id'], [db.abc, b.abc, 'id'],
     [db.proben, b.proben, 'id'], [db.lernstand, b.lernstand, 'key'],
+    [db.buecher, b.buecher, 'id'], [db.markierungen, b.markierungen, 'id'], [db.buchkarten, b.buchkarten, 'id'],
   ]
   for (const [t, liste, pk] of tabellen) for (const { _srv, ...e } of arr<any>(liste)) {
     const alt = await t.get(e[pk])
@@ -126,6 +130,8 @@ async function stelleBackupHer(b: any) {
   }
   for (const [id, url] of Object.entries(b.bilder ?? {}))
     if (!(await db.bilder.get(id))) await db.bilder.put({ id, blob: await dataUrlZuBlob(url as string), updatedAt: Date.now() })
+  for (const [id, d] of Object.entries<any>(b.dateien ?? {}))
+    if (!(await db.dateien.get(id))) await db.dateien.put({ id, name: d.name, blob: await dataUrlZuBlob(d.daten), updatedAt: d.updatedAt ?? Date.now() })
   return { neu, ergaenzt }
 }
 
